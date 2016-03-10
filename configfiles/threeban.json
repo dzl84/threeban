@@ -1,0 +1,11 @@
+{
+  "name": "eastmoney-threeban-page",
+
+  "resultObj": {
+    "stockID": "#{stockID}",
+    "sourcePage": "http://quote.eastmoney.com/3ban/sz#{stockID}.html"
+
+
+
+  }
+}
