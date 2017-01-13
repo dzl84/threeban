@@ -6,6 +6,13 @@ db = conn.getDB("admin");
 db.auth("superuser", "devtools123");
 
 db = conn.getDB("trade");
+schema = db.schema.findOne({})
+
+if (schema.schema_version == 1) {
+  print("DB already created.")
+  quit(0)
+}
+
 db.createUser({
   user: "trade", pwd: "ca$hc0w",
   roles: [{role: "readWrite", db: "trade"}]
