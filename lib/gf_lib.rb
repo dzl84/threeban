@@ -1,22 +1,36 @@
-require 'rubygems'
-require 'net/http'
-require 'net/https'
+
+require 'yaml'
 require_relative 'http_helper'
-require_relative 'ocr'
+# require_relative 'ocr'
 require 'json'
 
+class GFBroker
+  
+  def initialize
+    config_file = File.join(File.dirname(__FILE__), '../config/gf.yml')
+    puts config_file
+    config = YAML.load(File.read(config_file))
+    puts config["account"]
+  end
+
+  def login
+    
+  end
+  
+end
 
 $http = HTTPHelper.new("https://trade.gf.com.cn", true)
-$username = "*F0*F5*CF*A3*FC*99vT*CEJ*80h*9B*E9*1B*B3G*97*883*91G*16bw*22*A05*A8*CCL8G*97*883*91G*16bw*22*A05*A8*CCL8G*97*883*91G*16bw*22*A05*A8*CCL8*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00"
-$password = "*D9F*D3*DD*FEc*E0*C4l*5B*C0I*CC*06*27*84G*97*883*91G*16bw*22*A05*A8*CCL8G*97*883*91G*16bw*22*A05*A8*CCL8G*97*883*91G*16bw*22*A05*A8*CCL8*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00*00"
+
+$username = ""
+$password = ""
 
 $exchange_type = {'SH'=>1, 'SZ'=>2}
 
 def login
   puts "Getting the captcha code and cookie"
-  login = false
+  is_logged_in = false
 
-  until login do
+  until is_logged_in do
     cookie, captcha = getCaptcha($http)
     puts "Captcha: #{captcha}"
     if captcha.size != 5
@@ -39,8 +53,8 @@ def login
     puts resp.body
     puts resp['Set-Cookie']
     result = JSON.parse(resp.body)
-    login = result["success"]
-    puts "Login failed, retrying..." unless login
+    is_logged_in = result["success"]
+    puts "Login failed, retrying..." unless is_logged_in
   end
 end
 
@@ -112,34 +126,36 @@ end
 
 
 if __FILE__ == $0
-  login()
-
-  $http.getDelays
-
-  getStockPriceAmount '600011'
-
-  start = Time.now
-  puts start.strftime('%Y-%m-%d %H:%M:%S.%L %Z')
-  start = Time.new(start.year, start.month, start.day, 21, 59, 19, "+08:00")
-  puts Time.now < start
-  until Time.now >= start
-    sleep(1)
-    puts "Wait...#{Time.now.strftime('%Y-%m-%d %H:%M:%S.%L %Z')}"
-  end
-
-  threads = []
-  (1..3).each { |index|
-    threads << Thread.new do
-      sleep(index * 10)
-      puts "T#{index}: ...#{Time.now.strftime('%Y-%m-%d %H:%M:%S.%L %Z')}"
-      #queryFund
-      #getStockPriceAmount(ARGV[0])
-      #buy(ARGV[0], ARGV[1], ARGV[2])
-    end
-  }
-
-  threads.each do |thread|
-    thread.join
-  end
+  
+  gf = GFBroker.new
+  # login()
+# 
+  # $http.getDelays
+# 
+  # getStockPriceAmount '600011'
+# 
+  # start = Time.now
+  # puts start.strftime('%Y-%m-%d %H:%M:%S.%L %Z')
+  # start = Time.new(start.year, start.month, start.day, 21, 59, 19, "+08:00")
+  # puts Time.now < start
+  # until Time.now >= start
+    # sleep(1)
+    # puts "Wait...#{Time.now.strftime('%Y-%m-%d %H:%M:%S.%L %Z')}"
+  # end
+# 
+  # threads = []
+  # (1..3).each { |index|
+    # threads << Thread.new do
+      # sleep(index * 10)
+      # puts "T#{index}: ...#{Time.now.strftime('%Y-%m-%d %H:%M:%S.%L %Z')}"
+      # #queryFund
+      # #getStockPriceAmount(ARGV[0])
+      # #buy(ARGV[0], ARGV[1], ARGV[2])
+    # end
+  # }
+# 
+  # threads.each do |thread|
+    # thread.join
+  # end
 
 end
