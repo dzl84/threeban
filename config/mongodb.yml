@@ -1,8 +1,8 @@
 _dev_hosts: &DEV_HOSTS
-  - localhost
+  - mongo
 
 _test_hosts: &TEST_HOSTS
-  - localhost
+  - mongo
 
 _stg_hosts: &STG_HOSTS
 
@@ -19,97 +19,3 @@ development:
       password: ca$hc0w
   options:
     index: false
-
-test:
-  sessions:
-    default:
-      database: stats_test
-      hosts: *TEST_HOSTS
-    quota:
-      database: quota_test
-      hosts: *TEST_HOSTS
-    rm:
-      database: rm_test
-      hosts: *TEST_HOSTS
-    authenticate:
-      database: auth_test
-      hosts: *TEST_HOSTS
-    loginsight:
-      database: events_test
-      hosts: *TEST_HOSTS
-    policy:
-      database: nimbus-svc
-      hosts: *TEST_HOSTS
-  options:
-    index: true
-
-staging:
-  sessions:
-    default:
-      database: stats_db
-      username: statsGenerator
-      password: vmware
-      hosts: *STG_HOSTS
-    quota:
-      database: nimbus
-      username: nimbusquota
-      password: vmware1
-      hosts: *STG_HOSTS
-    rm:
-      database: rm
-      username: healthscore
-      password: vmware1
-      hosts: *STG_HOSTS
-    authenticate:
-      database: auth
-      username: auth_user
-      password: vmw@re
-      hosts: *STG_HOSTS
-    loginsight:
-      database: events
-      username: eventReporter
-      password: vmware
-      hosts: *STG_HOSTS
-    policy:
-      database: nimbus-svc
-      username: nimbusservice
-      password: vmware1
-      hosts: *STG_HOSTS
-  options:
-    index: false
-
-production:
-  sessions:
-    default:
-      database: stats_db
-      username: statsGenerator
-      password: vmware
-      hosts: *PRD_HOSTS
-    quota:
-      database: nimbus
-      username: nimbusquota
-      password: vmware1
-      hosts: *PRD_HOSTS
-    rm:
-      database: rm
-      username: healthscore
-      password: vmware1
-      hosts: *PRD_HOSTS
-    authenticate:
-      database: auth
-      username: auth_user
-      password: vmw@re
-      hosts: *PRD_HOSTS
-    loginsight:
-      database: events
-      username: eventReporter
-      password: vmware
-      hosts: *PRD_HOSTS
-    policy:
-      database: nimbus-svc
-      username: nimbusservice
-      password: vmware1
-      hosts: *PRD_HOSTS
-  options:
-    index: false
-

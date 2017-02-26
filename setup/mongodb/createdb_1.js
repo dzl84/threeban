@@ -12,4 +12,4 @@ db.createCollection("account")
 
 // Create a schema collection and insert the first schema version
 db.createCollection("schema")
-db.schema.insert({"schema_version": "1"})
+db.schema.insert({"schema_version": 1})
