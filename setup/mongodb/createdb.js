@@ -6,7 +6,7 @@ conn = new Mongo();
 
 // Connecting to the admin and authenticate
 db = conn.getDB("admin");
-db.auth("superuser", "devtools123");
+db.auth("superuser", "passw0rd");
 
 // Get the trade database and the schema record
 db = conn.getDB("trade");
