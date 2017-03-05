@@ -2,4 +2,5 @@
 db.createCollection("companies");
 
 //insert the schema version
-db.schema.insert({"schema_version": 2})
+db.schema.remove({})
+db.schema.insert({"schema_version": "2"})

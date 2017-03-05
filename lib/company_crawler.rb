@@ -25,11 +25,14 @@ module ThreeBan
       company_list = resp_json[0]["content"]
       company_list.each {|company|
         code = company["xxzqdm"]
-        name = company["xxzqjc"]
+        name = company["xxzqjc"].gsub(" ", "")
         trade_type = company["xxzrlx"]
         industry = company["xxhyzl"]
         location = company["xxssdq"]
-        #::Companies.upsert
+        puts code, name, trade_type, industry, location
+        ::Companies.find_and_upsert({:code => code}, 
+          {:code => code, :name => name, :trade_type => trade_type,
+           :industry => industry, :location => location})
       }
       
       # ::TopUser.delete_all({"updated" => {"$lt" => start_time}})
