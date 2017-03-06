@@ -1,8 +1,5 @@
 _dev_hosts: &DEV_HOSTS
-  - mongo
-
-_test_hosts: &TEST_HOSTS
-  - mongo
+  - threebandb
 
 _stg_hosts: &STG_HOSTS
 
@@ -15,7 +12,5 @@ development:
     default:
       database: trade
       hosts: *DEV_HOSTS
-      username: trade
-      password: ca$hc0w
   options:
-    index: false
+    index: true

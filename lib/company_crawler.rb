@@ -17,27 +17,30 @@ module ThreeBan
     def run
       start_time = Time.now
       httpclient = HTTPHelper.new(NEEQ_HOST)
-      
-      path = "/nqxxController/nqxx.do?page=0&typejb=T&sortfield=xxzqdm&sorttype=asc"
-      resp = httpclient.get(path)
-      json_str = resp.body[5...-1]
-      resp_json = JSON.parse(json_str)
-      company_list = resp_json[0]["content"]
-      company_list.each {|company|
-        code = company["xxzqdm"]
-        name = company["xxzqjc"].gsub(" ", "")
-        trade_type = company["xxzrlx"]
-        industry = company["xxhyzl"]
-        location = company["xxssdq"]
-        puts code, name, trade_type, industry, location
-        ::Companies.find_and_upsert({:code => code}, 
-          {:code => code, :name => name, :trade_type => trade_type,
-           :industry => industry, :location => location})
-      }
-      
-      # ::TopUser.delete_all({"updated" => {"$lt" => start_time}})
-    end
+      page = 0
+      is_last_page = false
+      while (!is_last_page)
 
+        path = "/nqxxController/nqxx.do?page=#{page}&typejb=T&sortfield=xxzqdm&sorttype=asc"
+        resp = httpclient.get(path)
+        json_str = resp.body[5...-1]
+        resp_json = JSON.parse(json_str)
+        company_list = resp_json[0]["content"]
+        company_list.each {|company|
+          code = company["xxzqdm"]
+          name = company["xxzqjc"].gsub(" ", "")
+          trade_type = company["xxzrlx"]
+          industry = company["xxhyzl"]
+          location = company["xxssdq"]
+          puts "#{code}, #{name}, #{trade_type}, #{industry}, #{location}"
+          ::Companies.upsert({"code" => code}, 
+            {"code" => code, "name" => name, "trade_type" => trade_type,
+             "industry" => industry, "location" => location})
+        }
+        page += 1
+        is_last_page = resp_json[0]["lastPage"]
+      end
+    end
   end
 
 end

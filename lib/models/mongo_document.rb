@@ -21,17 +21,18 @@ module MongoDocument
         if @hosts.size == 1
           host, port = @hosts[0].split ':'
           port = port ? port.to_i : DEFAULT_PORT
-          @client = MongoClient.new(host, port)
+          @client = Mongo::Client.new("mongodb://#{host}:#{port}")
         else
-          @client = MongoReplicaSetClient.new(@hosts)
+          @client = Mongo::ReplicaSetClient.new(@hosts)
         end
+        Mongo::Logger.logger.level = ::Logger::INFO
       end
       @client
     end
 
     def db
       if !@db
-        @db = client.db(@database)
+        @db = client.use(@database)
         if @username && !@db.authenticate(@username, @password)
           @db = nil
           raise "Authentication failed for user #{@username} in database #{@database}"
@@ -317,6 +318,10 @@ module MongoDocument
         )
       end
 
+      def upsert(selector, document)
+        collection.update_one(selector, document, {:upsert => true})
+      end
+      
       def update(selector, document)
         collection.update(selector, document)
       end

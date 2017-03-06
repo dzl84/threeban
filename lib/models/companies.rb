@@ -6,7 +6,7 @@ class Companies
   store_in :collection => 'companies', :session => 'default'
 
   field :name, :type => String
-  field :code, :type => Integer
+  field :code, :type => String
   field :trade_type, :type => String
   field :industry, :type => String
   field :location, :type => String
