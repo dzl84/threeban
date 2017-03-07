@@ -35,7 +35,7 @@ module ThreeBan
           puts "#{code}, #{name}, #{trade_type}, #{industry}, #{location}"
           ::Companies.upsert({"code" => code}, 
             {"code" => code, "name" => name, "trade_type" => trade_type,
-             "industry" => industry, "location" => location})
+             "industry" => industry, "location" => location, "updated_at" => Time.now})
         }
         page += 1
         is_last_page = resp_json[0]["lastPage"]
