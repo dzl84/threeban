@@ -5,12 +5,20 @@ _stg_hosts: &STG_HOSTS
 
 
 _prd_hosts: &PRD_HOSTS
-
+  - threebandb
 
 development:
   sessions:
     default:
       database: trade
       hosts: *DEV_HOSTS
+  options:
+    index: false
+    
+production:
+  sessions:
+    default:
+      database: trade
+      hosts: *PRD_HOSTS
   options:
     index: true
