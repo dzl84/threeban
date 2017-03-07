@@ -32,10 +32,12 @@ module ThreeBan
           trade_type = company["xxzrlx"]
           industry = company["xxhyzl"]
           location = company["xxssdq"]
+          layer = (company["xxfcbj"] == "1")? "创新层" : "基础层"
           puts "#{code}, #{name}, #{trade_type}, #{industry}, #{location}"
           ::Companies.upsert({"code" => code}, 
             {"code" => code, "name" => name, "trade_type" => trade_type,
-             "industry" => industry, "location" => location, "updated_at" => Time.now})
+             "industry" => industry, "location" => location, 
+             "layer" => layer, "updated_at" => Time.now})
         }
         page += 1
         is_last_page = resp_json[0]["lastPage"]
