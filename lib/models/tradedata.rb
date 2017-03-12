@@ -14,6 +14,5 @@ class TradeData
   field :sell1_amount, :type => Integer
   field :total_deal, :type => Float
   field :total_amount, :type => Integer
-  field :has_trade, :type => Boolean
-
+  field :updated_at, :type => Time
 end

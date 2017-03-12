@@ -13,5 +13,4 @@ class Companies
   field :layer, :type => String
   field :new_fin_report, :type => Boolean
   field :new_announce, :type => Boolean
-
 end

@@ -36,13 +36,14 @@ module ThreeBan
           total_deal = data["hqcjje"]
           total_amount = data["hqcjsl"]
           has_trade = (total_deal > 0) ? true : false
+          next unless has_trade
           puts "Saving trade data for #{code}"
           ::TradeData.upsert({"code" => code, "date" => date}, 
             {"code" => code, "name" => name, "date" => date,
              "buy1" => buy1, "buy1_amount" => buy1_amount, 
              "sell1" => sell1, "sell1_amount" => sell1_amount,
              "total_deal" => total_deal, "total_amount" => total_amount,
-             "has_trade" => has_trade, "updated_at" => Time.now})
+             "updated_at" => Time.now})
         }
         page += 1
         is_last_page = resp_json[0]["lastPage"]

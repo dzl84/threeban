@@ -129,8 +129,10 @@ module MongoDocument
   def initialize(doc = nil)
     @attrs = self.class.defaults.dup
     if doc
-      doc.each do |k, v|
-        self[k] = v
+      doc.each do |document|
+        document.each do |k, v|
+          self[k] = v
+        end
       end
     end
   end
@@ -272,14 +274,15 @@ module MongoDocument
         create!(attrs) rescue nil
       end
 
+      # Updated for ruby mongo driver 2.4.1
       def first
-        doc = collection.find_one
+        doc = collection.find(nil, {:limit => 1})
         doc ? self.new(doc) : nil
       end
 
-      # TODO: add a selector parameter to the last/first methods.
+      # Updated for ruby mongo driver 2.4.1
       def last
-        doc = collection.find_one({}, :sort => [:_id, -1])
+        doc = collection.find(nil, {:limit => 1, :sort => {:_id => -1}})
         doc ? self.new(doc) : nil
       end
 
@@ -289,8 +292,8 @@ module MongoDocument
       end
 
       def find(selector = {}, opts = {})
-        cursor = collection.find(selector, opts)
-        Collection.new(self, cursor)
+        view = collection.find(selector, opts)
+        view
       end
 
       # This method works when new field is appended to existing doc
