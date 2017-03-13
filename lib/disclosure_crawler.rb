@@ -20,6 +20,7 @@ module ThreeBan
       start_date = Date.strptime(start_date_str, "%Y-%m-%d")
       while start_date <= Date.today
         end_date_str = (start_date + 1).to_s
+        start_date_str = start_date.to_s
         page = 0
         is_last_page = false
         while (!is_last_page)
@@ -35,7 +36,6 @@ module ThreeBan
           }
           page += 1
           is_last_page = resp_json[0]["listInfo"]["lastPage"]
-          
         end
         start_date = Date.strptime(end_date_str, "%Y-%m-%d")
       end
