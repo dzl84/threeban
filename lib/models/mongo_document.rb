@@ -275,13 +275,16 @@ module MongoDocument
       end
 
       # Updated for ruby mongo driver 2.4.1
-      def first
-        doc = collection.find(nil, {:limit => 1})
+      def first(opts = {})
+        opts[:limit] = 1 
+        doc = collection.find(nil, opts)
         doc ? self.new(doc) : nil
       end
 
       # Updated for ruby mongo driver 2.4.1
-      def last
+      def last(opts = {})
+        opts[:limit] = 1
+        opts[:sort] = {:_id => -1} unless opts[:sort]
         doc = collection.find(nil, {:limit => 1, :sort => {:_id => -1}})
         doc ? self.new(doc) : nil
       end
