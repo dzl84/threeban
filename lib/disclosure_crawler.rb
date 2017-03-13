@@ -16,8 +16,7 @@ module ThreeBan
     def run
       start_time = Time.now
       httpclient = HTTPHelper.new(NEEQ_HOST)
-      start_date_str = get_last_date || "2010-01-01"
-      start_date = Date.strptime(start_date_str, "%Y-%m-%d")
+      start_date = get_last_date || Date.strptime("2010-01-01", "%Y-%m-%d")
       while start_date <= Date.today
         end_date_str = (start_date + 1).to_s
         start_date_str = start_date.to_s
