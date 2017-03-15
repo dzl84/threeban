@@ -275,17 +275,17 @@ module MongoDocument
       end
 
       # Updated for ruby mongo driver 2.4.1
-      def first(opts = {})
+      def first(selector = nil, opts = {})
         opts[:limit] = 1 
-        doc = collection.find(nil, opts)
+        doc = collection.find(selector, opts)
         doc ? self.new(doc) : nil
       end
 
       # Updated for ruby mongo driver 2.4.1
-      def last(opts = {})
+      def last(selector = nil, opts = {})
         opts[:limit] = 1
         opts[:sort] = {:_id => -1} unless opts[:sort]
-        doc = collection.find(nil, {:limit => 1, :sort => {:_id => -1}})
+        doc = collection.find(selector, {:limit => 1, :sort => {:_id => -1}})
         doc ? self.new(doc) : nil
       end
 
@@ -329,7 +329,7 @@ module MongoDocument
       end
       
       def update(selector, document)
-        collection.update(selector, document)
+        collection.find_one_and_update(selector, {"$set" => document})
       end
 
       def delete_all(selector = {})

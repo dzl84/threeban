@@ -5,6 +5,8 @@ require "json"
 require "time"
 require_relative "models"
 require_relative "utils"
+require "pdf-reader"
+require "open-uri"
 
 module ThreeBan
   class DisclosureCrawler
@@ -13,15 +15,17 @@ module ThreeBan
     def initialize()
     end
 
-    def run
+    def crawl_disclosure
       start_time = Time.now
       httpclient = HTTPHelper.new(NEEQ_HOST)
       start_date = get_last_date || Date.strptime("2010-01-01", "%Y-%m-%d")
+      last_code = get_last_disclosure_code
       while start_date <= Date.today
         end_date_str = (start_date + 1).to_s
         start_date_str = start_date.to_s
         page = 0
         is_last_page = false
+        is_done = false
         while (!is_last_page)
           puts "Getting #{start_date_str} - #{end_date_str}, page #{page}"
           path = "/disclosureInfoController/infoResult.do"
@@ -31,8 +35,13 @@ module ThreeBan
           resp_json = JSON.parse(json_str)
           disclosure_list = resp_json[0]["listInfo"]["content"]
           disclosure_list.each {|disclosure|
+            if disclosure["disclosureCode"] == last_code
+              is_done = true
+              break
+            end
             save_disclosure(disclosure)
           }
+          break if is_done
           page += 1
           is_last_page = resp_json[0]["listInfo"]["lastPage"]
         end
@@ -40,9 +49,36 @@ module ThreeBan
       end
     end
     
+    def crawl_disclosure_content
+      disclosures = ::Disclosures.find({:content => {"$exists" => false}}, \
+        {:sort => {:publishTime => 1}, :limit => 100})
+      disclosures.each {|disc|
+        io     = open("#{NEEQ_HOST}#{disc[:filePath]}")
+        reader = PDF::Reader.new(io)
+        content = ""
+        reader.pages.each { |page|
+          page.text.split("\n").each {|line|
+            next if line.length == 0
+            if line.start_with?(" ")
+              content += "\n#{line}"
+            else
+              content += line 
+            end
+          }
+        }
+        puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
+        ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => content})
+      }
+    end
+    
     def get_last_date
-      rec = ::Disclosures.last(:sort => {:publishDate => 1})
+      rec = ::Disclosures.last(nil, :sort => {:publishTime => 1})
       rec[:publishDate]
+    end
+    
+    def get_last_disclosure_code
+      rec = ::Disclosures.last(nil, :sort => {:publishTime => 1})
+      rec[:disclosureCode]
     end
     
     def save_disclosure(disclosure)
@@ -79,5 +115,6 @@ end
 
 if __FILE__ == $0
   crawler = ThreeBan::DisclosureCrawler.new
-  crawler.run
+  #crawler.crawl_disclosure
+  crawler.crawl_disclosure_content
 end
