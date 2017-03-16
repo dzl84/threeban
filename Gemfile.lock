@@ -28,6 +28,3 @@ DEPENDENCIES
   mongo (~> 2.4.1)
   pdf-reader (~> 2.0.0)
   tzinfo (~> 1.2.2)
-
-BUNDLED WITH
-   1.14.6

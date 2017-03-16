@@ -14,6 +14,6 @@ if [ "$RUNNING" == "false" ]; then
     docker start $DBNAME
 fi
 
-docker exec -it $DBNAME sh -c "cd /code; bundle install"
+docker exec -i $DBNAME sh -c "cd /code; bundle install"
 
-docker exec -it $DBNAME sh -c "RACK_ENV=production ruby /code/lib/disclosure_crawler.rb >> /logs/disclosure_crawler.log 2>&1"
+docker exec -i $DBNAME sh -c "RACK_ENV=production ruby /code/lib/disclosure_crawler.rb >> /logs/disclosure_crawler.log 2>&1"

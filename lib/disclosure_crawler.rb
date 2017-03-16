@@ -53,21 +53,25 @@ module ThreeBan
       disclosures = ::Disclosures.find({:content => {"$exists" => false}}, \
         {:sort => {:publishTime => 1}, :limit => 100})
       disclosures.each {|disc|
-        io     = open("#{NEEQ_HOST}#{disc[:filePath]}")
-        reader = PDF::Reader.new(io)
-        content = ""
-        reader.pages.each { |page|
-          page.text.split("\n").each {|line|
-            next if line.length == 0
-            if line.start_with?(" ")
-              content += "\n#{line}"
-            else
-              content += line 
-            end
+        begin
+          io     = open("#{NEEQ_HOST}#{disc[:filePath]}")
+          reader = PDF::Reader.new(io)
+          content = ""
+          reader.pages.each { |page|
+            page.text.split("\n").each {|line|
+              next if line.length == 0
+              if line.start_with?(" ")
+                content += "\n#{line}"
+              else
+                content += line 
+              end
+            }
           }
-        }
-        puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
-        ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => content})
+          puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
+          ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => content})
+        rescue Exception => e
+          puts "Failed to get content for disclosure #{disc[:filePath]}"
+        end
       }
     end
     
@@ -115,6 +119,6 @@ end
 
 if __FILE__ == $0
   crawler = ThreeBan::DisclosureCrawler.new
-  #crawler.crawl_disclosure
+  crawler.crawl_disclosure
   crawler.crawl_disclosure_content
 end
