@@ -56,7 +56,7 @@ module ThreeBan
       disclosures.each {|disc|
         begin
           content = nil
-          if disc[:filePath].ends_with?(".pdf")
+          if disc[:filePath].end_with?(".pdf")
             io     = open("#{NEEQ_HOST}#{disc[:filePath]}")
             reader = PDF::Reader.new(io)
             content = ""
@@ -70,7 +70,7 @@ module ThreeBan
                 end
               }
             }
-            elsif disc[:filePath].ends_with?(".txt")
+            elsif disc[:filePath].end_with?(".txt")
               resp = httpclient.get(disc[:filePath])
               if resp.code == '200'
                 content = resp.body 
