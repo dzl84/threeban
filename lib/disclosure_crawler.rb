@@ -70,17 +70,19 @@ module ThreeBan
                 end
               }
             }
-            elsif disc[:filePath].end_with?(".txt")
+          elsif disc[:filePath].end_with?(".txt")
               resp = httpclient.get(disc[:filePath])
               if resp.code == '200'
                 content = resp.body 
               else
                 puts "Failed to get content for disclosure #{disc[:filePath]}, code: #{resp.code}"
+                next
               end
-            else
+          else
               puts "Unsupported suffix #{disc[:filePath]}"
               next
-            end
+          end
+          
           puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
           ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => content})
         rescue Exception => e
