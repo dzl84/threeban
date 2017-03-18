@@ -75,18 +75,18 @@ module ThreeBan
               if resp.code == '200'
                 content = resp.body 
               else
-                puts resp.code
-                puts resp.body
-                raise RuntimeError
+                puts "Failed to get content for disclosure #{disc[:filePath]}, code: #{resp.code}"
               end
             else
-              raise "Unsupported suffix #{disc[:filePath]}"
+              puts "Unsupported suffix #{disc[:filePath]}"
+              next
             end
           puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
           ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => content})
         rescue Exception => e
           puts "Failed to get content for disclosure #{disc[:filePath]}, #{e.class.name}"
           puts e.backtrace
+          ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => "error"})
         end
       }
     end
