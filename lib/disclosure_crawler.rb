@@ -7,6 +7,7 @@ require_relative "models"
 require_relative "utils"
 require "pdf-reader"
 require "open-uri"
+require "concurrent"
 
 module ThreeBan
   class DisclosureCrawler
@@ -51,10 +52,30 @@ module ThreeBan
     
     def crawl_disclosure_content
       disclosures = ::Disclosures.find({:content => {"$exists" => false}}, \
-        {:sort => {:publishTime => 1}, :limit => 100})
+        {:sort => {:publishTime => 1}, :limit => 1000})
       httpclient = HTTPHelper.new(NEEQ_HOST)
+      count = 50
+      pool = Concurrent::FixedThreadPool.new(count)
       disclosures.each {|disc|
-        begin
+        pool.post {
+          save_disclosure_content(disc)
+        }
+      }
+      pool.wait_for_termination
+    end
+    
+    def get_last_date
+      rec = ::Disclosures.last(nil, :sort => {:publishTime => 1})
+      rec[:publishDate]
+    end
+    
+    def get_last_disclosure_code
+      rec = ::Disclosures.last(nil, :sort => {:publishTime => 1})
+      rec[:disclosureCode]
+    end
+    
+    def save_disclosure_content(disc)      
+      begin
           content = nil
           if disc[:filePath].end_with?(".pdf")
             io     = open("#{NEEQ_HOST}#{disc[:filePath]}")
@@ -76,11 +97,11 @@ module ThreeBan
                 content = resp.body 
               else
                 puts "Failed to get content for disclosure #{disc[:filePath]}, code: #{resp.code}"
-                next
+                return
               end
           else
               puts "Unsupported suffix #{disc[:filePath]}"
-              next
+              return
           end
           
           puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
@@ -90,17 +111,6 @@ module ThreeBan
           puts e.backtrace
           ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => "error"})
         end
-      }
-    end
-    
-    def get_last_date
-      rec = ::Disclosures.last(nil, :sort => {:publishTime => 1})
-      rec[:publishDate]
-    end
-    
-    def get_last_disclosure_code
-      rec = ::Disclosures.last(nil, :sort => {:publishTime => 1})
-      rec[:disclosureCode]
     end
     
     def save_disclosure(disclosure)
@@ -137,6 +147,9 @@ end
 
 if __FILE__ == $0
   crawler = ThreeBan::DisclosureCrawler.new
+  puts "Start: #{Time.now}"
   crawler.crawl_disclosure
+  
   crawler.crawl_disclosure_content
+  puts "End: #{Time.now}"
 end
