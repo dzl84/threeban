@@ -61,6 +61,7 @@ module ThreeBan
           save_disclosure_content(disc)
         }
       }
+      pool.shutdown
       pool.wait_for_termination
     end
     
@@ -149,7 +150,7 @@ if __FILE__ == $0
   crawler = ThreeBan::DisclosureCrawler.new
   puts "Start: #{Time.now}"
   crawler.crawl_disclosure
-  
   crawler.crawl_disclosure_content
   puts "End: #{Time.now}"
+  
 end
