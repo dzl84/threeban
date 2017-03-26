@@ -54,7 +54,7 @@ module ThreeBan
       disclosures = ::Disclosures.find({:content => {"$exists" => false}}, \
         {:sort => {:publishTime => 1}, :limit => 1000})
       httpclient = HTTPHelper.new(NEEQ_HOST)
-      count = 50
+      count = 25
       pool = Concurrent::FixedThreadPool.new(count)
       disclosures.each {|disc|
         pool.post {
