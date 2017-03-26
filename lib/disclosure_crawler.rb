@@ -52,9 +52,9 @@ module ThreeBan
     
     def crawl_disclosure_content
       disclosures = ::Disclosures.find({:content => {"$exists" => false}}, \
-        {:sort => {:publishTime => 1}, :limit => 500})
+        {:sort => {:publishTime => 1}, :limit => 20})
       httpclient = HTTPHelper.new(NEEQ_HOST)
-      count = 25
+      count = 3
       pool = Concurrent::FixedThreadPool.new(count)
       disclosures.each {|disc|
         pool.post {
@@ -149,7 +149,7 @@ end
 if __FILE__ == $0
   crawler = ThreeBan::DisclosureCrawler.new
   puts "Start: #{Time.now}"
-  crawler.crawl_disclosure
+  #crawler.crawl_disclosure
   crawler.crawl_disclosure_content
   puts "End: #{Time.now}"
   

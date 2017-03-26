@@ -4,6 +4,7 @@ GEM
     Ascii85 (1.0.2)
     afm (0.2.2)
     bson (4.2.1)
+    concurrent-ruby (1.0.5)
     hashery (2.1.2)
     log4r (1.1.10)
     mongo (2.4.1)
@@ -24,7 +25,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  concurrent-ruby (~> 1.0.5)
   log4r (~> 1.1.10)
   mongo (~> 2.4.1)
   pdf-reader (~> 2.0.0)
   tzinfo (~> 1.2.2)
+
+BUNDLED WITH
+   1.14.6
