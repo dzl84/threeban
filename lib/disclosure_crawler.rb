@@ -106,11 +106,11 @@ module ThreeBan
           end
           
           puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
-          ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => content})
+          ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => content, :hasContent => true})
         rescue Exception => e
           puts "Failed to get content for disclosure #{disc[:filePath]}, #{e.class.name}"
           puts e.backtrace
-          ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => "error"})
+          ::Disclosures.update({:disclosureCode => disc[:disclosureCode]}, {:content => "error", :hasContent => true})
         end
     end
     
