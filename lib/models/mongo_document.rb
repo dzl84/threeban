@@ -21,7 +21,7 @@ module MongoDocument
         if @hosts.size == 1
           host, port = @hosts[0].split ':'
           port = port ? port.to_i : DEFAULT_PORT
-          @client = Mongo::Client.new("mongodb://#{host}:#{port}")
+          @client = Mongo::Client.new("mongodb://#{host}:#{port}", {:max_pool_size: 25})
         else
           @client = Mongo::ReplicaSetClient.new(@hosts)
         end

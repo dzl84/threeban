@@ -52,7 +52,7 @@ module ThreeBan
     
     def crawl_disclosure_content
       disclosures = ::Disclosures.find({:content => {"$exists" => false}}, \
-        {:sort => {:publishTime => 1}, :limit => 1000})
+        {:sort => {:publishTime => 1}, :limit => 500})
       httpclient = HTTPHelper.new(NEEQ_HOST)
       count = 25
       pool = Concurrent::FixedThreadPool.new(count)
