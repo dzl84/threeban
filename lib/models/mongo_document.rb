@@ -21,7 +21,7 @@ module MongoDocument
         if @hosts.size == 1
           host, port = @hosts[0].split ':'
           port = port ? port.to_i : DEFAULT_PORT
-          @client = Mongo::Client.new("mongodb://#{host}:#{port}", {:max_pool_size => 25})
+          @client = Mongo::Client.new("mongodb://#{host}:#{port}", {:max_pool_size => 5})
         else
           @client = Mongo::ReplicaSetClient.new(@hosts)
         end
@@ -32,6 +32,7 @@ module MongoDocument
 
     def db
       if !@db
+        
         @db = client.use(@database)
         if @username && !@db.authenticate(@username, @password)
           @db = nil
@@ -39,6 +40,12 @@ module MongoDocument
         end
       end
       @db
+    end
+    
+    def close
+      if @db
+        @db.close
+      end
     end
 
     def [](coll)
@@ -339,7 +346,6 @@ module MongoDocument
       def count(selector = {})
         collection.count :query => selector
       end
-
     end
   end
 end

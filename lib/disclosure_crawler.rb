@@ -3,7 +3,7 @@
 require_relative "http_helper"
 require "json"
 require "time"
-require_relative "models"
+require_relative "models/disclosure"
 require_relative "utils"
 require "pdf-reader"
 require "open-uri"

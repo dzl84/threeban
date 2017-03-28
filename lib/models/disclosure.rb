@@ -1,9 +1,7 @@
-require_relative 'common'
+require_relative 'base'
 
-class Disclosures
-  include MongoDocument
-
-  store_in :collection => 'disclosures', :session => 'default'
+class Disclosure
+  include Mongoid::Document
 
   field :name, :type => String
   field :code, :type => String
