@@ -45,3 +45,4 @@ production:
         max_pool_size: 10
         wait_queue_timeout: 1
         connect_timeout: 10 
+        autocreate_indexes: true

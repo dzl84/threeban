@@ -14,4 +14,7 @@ class Disclosure
   field :filePath, :type => String
   field :isContentParse, :type => Boolean, :default => false
   field :txtPath, :type => String
+  
+  index({disclosureCode: 1}, {unique: true, background: true})
+  index({publishTime: 1}, {background: true})
 end
