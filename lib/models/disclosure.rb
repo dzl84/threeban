@@ -15,6 +15,6 @@ class Disclosure
   field :isContentParse, :type => Boolean, :default => false
   field :txtPath, :type => String
   
-  index({disclosureCode: 1}, {unique: true, background: true})
+  index({disclosureCode: 1}, {unique: true, background: true, drop_dups: true})
   index({publishTime: 1}, {background: true})
 end
