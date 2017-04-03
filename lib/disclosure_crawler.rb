@@ -155,7 +155,7 @@ module ThreeBan
         open(file_path, "w") do |file|
           file << open(url).read
         end
-        file_path
+        return file_path
       rescue Exception => e
         puts e.backtrace 
       end
