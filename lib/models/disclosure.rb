@@ -11,7 +11,6 @@ class Disclosure
   field :disclosureType, :type => String
   field :publishDate, :type => Date
   field :publishTime, :type => Time
-  field :isDownloaded, :type => Boolean, :default => false
   field :filePath, :type => String
   field :isContentParse, :type => Boolean, :default => false
   field :txtPath, :type => String

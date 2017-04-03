@@ -138,7 +138,7 @@ module ThreeBan
       publishTime = Time.at(str.to_i/1000)
       filePath = download_disclosure(code, NEEQ_HOST + fileURL)
       Disclosure.create(
-        :code => code, :name => name, :fileURL => fileURL,
+        :code => code, :name => name, :fileURL => fileURL, :filePath => filePath,
         :disclosureCode => disclosureCode, :disclosureTitle => disclosureTitle,
         :disclosureType => disclosureType, :publishDate => publishDate,
         :publishTime => publishTime
