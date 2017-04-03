@@ -20,7 +20,9 @@ module ThreeBan
       start_time = Time.now
       httpclient = HTTPHelper.new(NEEQ_HOST)
       start_date = get_last_date || Date.strptime("2010-01-01", "%Y-%m-%d")
-      last_code = get_last_disclosure_code
+      count = 5
+      pool = Concurrent::FixedThreadPool.new(count)
+      
       while start_date <= Date.today
         end_date_str = (start_date + 1).to_s
         start_date_str = start_date.to_s
@@ -36,18 +38,18 @@ module ThreeBan
           resp_json = JSON.parse(json_str)
           disclosure_list = resp_json[0]["listInfo"]["content"]
           disclosure_list.each {|disclosure|
-            if disclosure["disclosureCode"] == last_code
-            is_done = true
-            break
-            end
-            save_disclosure(disclosure)
+            pool.post {
+              save_disclosure(disclosure)
+            }
           }
-          break if is_done
+          
           page += 1
           is_last_page = resp_json[0]["listInfo"]["lastPage"]
         end
         start_date = Date.strptime(end_date_str, "%Y-%m-%d")
       end
+      pool.shutdown
+      pool.wait_for_termination
     end
 
     def crawl_disclosure_content
@@ -137,12 +139,16 @@ module ThreeBan
       str = disclosure["upDate"]["time"]
       publishTime = Time.at(str.to_i/1000)
       filePath = download_disclosure(code, NEEQ_HOST + fileURL)
-      Disclosure.create(
-        :code => code, :name => name, :fileURL => fileURL, :filePath => filePath,
-        :disclosureCode => disclosureCode, :disclosureTitle => disclosureTitle,
-        :disclosureType => disclosureType, :publishDate => publishDate,
-        :publishTime => publishTime
-      )
+      begin
+        Disclosure.create(
+          :code => code, :name => name, :fileURL => fileURL, :filePath => filePath,
+          :disclosureCode => disclosureCode, :disclosureTitle => disclosureTitle,
+          :disclosureType => disclosureType, :publishDate => publishDate,
+          :publishTime => publishTime
+        )
+      rescue Exception => e
+        puts e.backtrace
+      end
     end
 
     def download_disclosure(code, url)
