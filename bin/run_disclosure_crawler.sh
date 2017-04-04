@@ -5,7 +5,7 @@ DBNAME=disclosure_crawler
 RUNNING=`docker inspect --format="{{ .State.Running }}" $DBNAME`
 if [ $? -eq 1 ]; then
     echo "Container $DBNAME does not exist. Creating..."
-    docker create -it --link threebandb --name $DBNAME -v $ROOT/..:/code -v $ROOT/../logs:/logs ruby:2.3.0
+    docker create -it --link threebandb --name $DBNAME -v $ROOT/..:/code -v $ROOT/../logs:/logs -v $ROOT/../data/disclosures:/data/disclosures ruby:2.3.0
 fi
 
 RUNNING=`docker inspect --format="{{ .State.Running }}" $DBNAME`
@@ -16,4 +16,4 @@ fi
 
 docker exec -i $DBNAME sh -c "cd /code; bundle install"
 
-docker exec -i $DBNAME sh -c "RACK_ENV=production ruby /code/lib/disclosure_crawler.rb >> /logs/disclosure_crawler.log 2>&1"
+docker exec -i $DBNAME sh -c "RACK_ENV=production ruby /code/lib/disclosure_crawler.rb --action crawl-list >> /logs/disclosure_crawler.log 2>&1"

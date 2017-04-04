@@ -1,14 +1,14 @@
 # encoding: UTF-8
 
 require_relative "http_helper"
-require "json"
-require "time"
-
 require_relative "models/disclosure"
 require_relative "utils"
+require "json"
+require "time"
 require "pdf-reader"
 require "open-uri"
 require "concurrent"
+require "trollop"
 
 module ThreeBan
   class DisclosureCrawler
@@ -20,36 +20,38 @@ module ThreeBan
       start_time = Time.now
       httpclient = HTTPHelper.new(NEEQ_HOST)
       start_date = get_last_date || Date.strptime("2010-01-01", "%Y-%m-%d")
-      count = 5
-      pool = Concurrent::FixedThreadPool.new(count)
-      
+      last_code = get_last_disclosure_code
       while start_date <= Date.today
-        end_date_str = (start_date + 1).to_s
         start_date_str = start_date.to_s
         page = 0
         is_last_page = false
         is_done = false
+        disclosures = []
         while (!is_last_page)
-          puts "Getting #{start_date_str} - #{end_date_str}, page #{page}"
+          
           path = "/disclosureInfoController/infoResult.do"
-          data = "disclosureType=5&page=#{page}&companyCd=&isNewThree=1&startTime=#{start_date_str}&endTime=#{end_date_str}&keyword=&xxfcbj="
+          data = "disclosureType=5&page=#{page}&companyCd=&isNewThree=1&startTime=#{start_date_str}&endTime=#{start_date_str}&keyword=&xxfcbj="
           resp = httpclient.post(path, data)
           json_str = resp.body[5...-1]
           resp_json = JSON.parse(json_str)
           disclosure_list = resp_json[0]["listInfo"]["content"]
+          puts "Getting disclosures on #{start_date_str}, page #{page}, item #{disclosure_list.size}"
           disclosure_list.each {|disclosure|
-            pool.post {
-              save_disclosure(disclosure)
-            }
+            if last_code == disclosure["disclosureCode"]
+              is_done = true
+              is_last_page = true
+              break
+            end
+            disclosures << parse_disc_json(disclosure)
           }
-          
+          next if is_done
           page += 1
           is_last_page = resp_json[0]["listInfo"]["lastPage"]
         end
-        start_date = Date.strptime(end_date_str, "%Y-%m-%d")
+        # Saving data into db in a batch
+        Disclosure.create(disclosures) if disclosures.size > 0
+        start_date = start_date + 1
       end
-      pool.shutdown
-      pool.wait_for_termination
     end
 
     def crawl_disclosure_content
@@ -116,7 +118,8 @@ module ThreeBan
       end
     end
 
-    def save_disclosure(disclosure)
+    # Parse disclosure json to a hash for inserting into db
+    def parse_disc_json(disclosure)
       code = disclosure["companyCd"]
       name = disclosure["companyName"].gsub(" ", "")
       fileURL = disclosure["destFilePath"]
@@ -138,17 +141,13 @@ module ThreeBan
       publishDate = disclosure["publishDate"]
       str = disclosure["upDate"]["time"]
       publishTime = Time.at(str.to_i/1000)
-      filePath = download_disclosure(code, NEEQ_HOST + fileURL)
-      begin
-        Disclosure.create(
-          :code => code, :name => name, :fileURL => fileURL, :filePath => filePath,
-          :disclosureCode => disclosureCode, :disclosureTitle => disclosureTitle,
-          :disclosureType => disclosureType, :publishDate => publishDate,
-          :publishTime => publishTime
-        )
-      rescue Exception => e
-        puts e.backtrace
-      end
+      
+      {
+        :code => code, :name => name, :fileURL => fileURL, 
+        :disclosureCode => disclosureCode, :disclosureTitle => disclosureTitle,
+        :disclosureType => disclosureType, :publishDate => publishDate,
+        :publishTime => publishTime
+      }
     end
 
     def download_disclosure(code, url)
@@ -171,10 +170,19 @@ module ThreeBan
 end
 
 if __FILE__ == $0
+  ACTIONS = ["crawl-list", "download", "parse-content"]
+  opts = Trollop::options do
+    opt :action, "Actions to perform in the crawler", 
+      :type => :string
+  end
+  unless ACTIONS.include?(opts[:action])
+    raise "#{opts[:action]} is not a supported action. Available actions are #{ACTIONS}"
+  end
   crawler = ThreeBan::DisclosureCrawler.new
-  puts "Start: #{Time.now}"
-  crawler.crawl_disclosure
-  #crawler.crawl_disclosure_content
-  puts "End: #{Time.now}"
-
+  case opts[:action]
+  when "crawl-list"
+    crawler.crawl_disclosure
+  when "download"
+  when "parse-content"
+  end
 end
