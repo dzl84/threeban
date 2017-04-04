@@ -56,7 +56,7 @@ module ThreeBan
     end
 
     def crawl_disclosure_content
-      disclosures = Disclosure.where(:filePath => nil).asc(:publishTime).limit(100)
+      disclosures = Disclosure.where(:filePath => nil).asc(:publishTime).limit(500)
       httpclient = HTTPHelper.new(NEEQ_HOST)
       count = 5
       pool = Concurrent::FixedThreadPool.new(count)
