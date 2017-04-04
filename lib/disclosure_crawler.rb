@@ -13,6 +13,7 @@ require "trollop"
 module ThreeBan
   class DisclosureCrawler
     NEEQ_HOST = "http://www.neeq.com.cn"
+    DATA_ROOT = "/data"
     def initialize()
     end
 
@@ -55,14 +56,15 @@ module ThreeBan
     end
 
     def crawl_disclosure_content
-      disclosures = Disclosure.where({:content => {"$exists" => false}}, \
-      {:sort => {:publishTime => 1}, :limit => 20})
+      disclosures = Disclosure.where(:filePath => nil).asc(:publishTime).limit(100)
       httpclient = HTTPHelper.new(NEEQ_HOST)
-      count = 3
+      count = 5
       pool = Concurrent::FixedThreadPool.new(count)
       disclosures.each {|disc|
         pool.post {
-          save_disclosure_content(disc)
+          puts "Downloading #{disc[:disclosureCode]} #{disc[:publishTime]} #{disc[:disclosureTitle]}"
+          path = download_disclosure(disc)
+          disc.update_attributes!(:filePath => path, :isDownloaded => true) unless path.nil?
         }
       }
       pool.shutdown
@@ -150,10 +152,13 @@ module ThreeBan
       }
     end
 
-    def download_disclosure(code, url)
-      filename = url.split("/").last
-      data_root = "/data"
-      folder_path = data_root + "/" + code.split("").join("/")
+    # Download the disclosure file and save it to disk
+    def download_disclosure(disc)
+      code = disc[:code]
+      url = NEEQ_HOST + disc[:fileURL]
+      filename = disc[:fileURL].split("/").last
+      
+      folder_path = DATA_ROOT + "/" + code.split("").join("/")
       file_path = folder_path + "/" + filename
       begin
         FileUtils.mkdir_p(folder_path)
@@ -183,6 +188,7 @@ if __FILE__ == $0
   when "crawl-list"
     crawler.crawl_disclosure
   when "download"
+    crawler.crawl_disclosure_content
   when "parse-content"
   end
 end
