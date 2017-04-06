@@ -17,5 +17,5 @@ class Disclosure
   field :txtPath, :type => String, :default => nil
   
   index({disclosureCode: 1}, {unique: true, background: true, drop_dups: true})
-  index({publishTime: 1}, {background: true})
+  index({publishDate: 1}, {background: true})
 end

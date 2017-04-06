@@ -9,6 +9,7 @@ require "pdf-reader"
 require "open-uri"
 require "concurrent"
 require "trollop"
+require "ruby-prof"
 
 module ThreeBan
   class DisclosureCrawler
@@ -20,10 +21,11 @@ module ThreeBan
     def crawl_disclosure
       start_time = Time.now
       httpclient = HTTPHelper.new(NEEQ_HOST)
-      start_date = get_last_date || Date.strptime("2010-01-01", "%Y-%m-%d")
-      last_code = get_last_disclosure_code
+      start_date = get_last_date || Date.strptime("2011-01-01", "%Y-%m-%d")
+      
       while start_date <= Date.today
         start_date_str = start_date.to_s
+        last_codes = get_disclosureCodes_on(start_date_str)
         page = 0
         is_last_page = false
         is_done = false
@@ -38,7 +40,7 @@ module ThreeBan
           disclosure_list = resp_json[0]["listInfo"]["content"]
           puts "Getting disclosures on #{start_date_str}, page #{page}, item #{disclosure_list.size}"
           disclosure_list.each {|disclosure|
-            if last_code == disclosure["disclosureCode"]
+            if last_codes.include?(disclosure["disclosureCode"])
               is_done = true
               is_last_page = true
               break
@@ -50,7 +52,7 @@ module ThreeBan
           is_last_page = resp_json[0]["listInfo"]["lastPage"]
         end
         # Saving data into db in a batch
-        Disclosure.create(disclosures) if disclosures.size > 0
+        Disclosure.create!(disclosures) if disclosures.size > 0
         start_date = start_date + 1
       end
     end
@@ -72,13 +74,13 @@ module ThreeBan
     end
 
     def get_last_date
-      rec = Disclosure.order_by(:publishTime => 'desc').first
+      rec = Disclosure.order_by(:publishDate => 'desc').first
       rec.publishDate rescue nil
     end
 
-    def get_last_disclosure_code
-      rec = Disclosure.order_by(:publishTime => 'desc').first
-      rec.disclosureCode rescue nil
+    def get_disclosureCodes_on(date)
+      rec = Disclosure.where(:publishDate => date)
+      rec.map{|disc| disc[:disclosureCode]}
     end
 
     def save_disclosure_content(disc)
@@ -141,14 +143,11 @@ module ThreeBan
       "Other-#{type}"
       end
       publishDate = disclosure["publishDate"]
-      str = disclosure["upDate"]["time"]
-      publishTime = Time.at(str.to_i/1000)
       
       {
         :code => code, :name => name, :fileURL => fileURL, 
         :disclosureCode => disclosureCode, :disclosureTitle => disclosureTitle,
-        :disclosureType => disclosureType, :publishDate => publishDate,
-        :publishTime => publishTime
+        :disclosureType => disclosureType, :publishDate => publishDate
       }
     end
 
@@ -186,9 +185,17 @@ if __FILE__ == $0
   crawler = ThreeBan::DisclosureCrawler.new
   case opts[:action]
   when "crawl-list"
+    RubyProf.measure_mode = RubyProf::MEMORY
+    RubyProf.start
     crawler.crawl_disclosure
+    result = RubyProf.stop
   when "download"
     crawler.crawl_disclosure_content
   when "parse-content"
   end
+  
+
+# print a flat profile to text
+printer = RubyProf::GraphPrinter.new(result)
+printer.print(STDOUT)
 end
