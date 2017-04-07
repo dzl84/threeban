@@ -46,7 +46,14 @@ class HTTPHelper
 
   def post path, data, headers={}
     headers = headers.merge({"Cookie" => self.getCookieStr}) if !@cookie.empty?
-    resp = @http.post(path, data, headers)
+    retry_times = 3
+    begin
+      resp = @http.post(path, data, headers)
+    rescue Net::ReadTimeout => e
+      retry_times -= 1
+      retry if retry_times >= 0
+      raise "Failed to post data after retry #{retry_times} times"
+    end
     newcookie = resp.to_hash['set-cookie']
     newcookie.each {|cookie| self.setCookie(cookie)} if newcookie
     resp

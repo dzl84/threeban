@@ -9,7 +9,6 @@ require "pdf-reader"
 require "open-uri"
 require "concurrent"
 require "trollop"
-require "ruby-prof"
 
 module ThreeBan
   class DisclosureCrawler
@@ -52,7 +51,7 @@ module ThreeBan
           is_last_page = resp_json[0]["listInfo"]["lastPage"]
         end
         # Saving data into db in a batch
-        Disclosure.create!(disclosures) if disclosures.size > 0
+        Disclosure.create(disclosures) if disclosures.size > 0
         start_date = start_date + 1
       end
     end
@@ -185,10 +184,10 @@ if __FILE__ == $0
   crawler = ThreeBan::DisclosureCrawler.new
   case opts[:action]
   when "crawl-list"
-    RubyProf.measure_mode = RubyProf::MEMORY
-    RubyProf.start
+    #RubyProf.measure_mode = RubyProf::MEMORY
+    #RubyProf.start
     crawler.crawl_disclosure
-    result = RubyProf.stop
+    #result = RubyProf.stop
   when "download"
     crawler.crawl_disclosure_content
   when "parse-content"
@@ -196,6 +195,6 @@ if __FILE__ == $0
   
 
 # print a flat profile to text
-printer = RubyProf::GraphPrinter.new(result)
-printer.print(STDOUT)
+#printer = RubyProf::GraphPrinter.new(result)
+#printer.print(STDOUT)
 end

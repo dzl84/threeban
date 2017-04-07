@@ -19,7 +19,7 @@ fi
 
 echo "Running job"
 docker exec -i $NAME sh -c "cd /code; bundle install"
-docker exec -i $NAME sh -c "RACK_ENV=production ruby /code/lib/disclosure_crawler.rb --action crawl-list >> /logs/disclosure_crawler.log 2>&1"
+docker exec -i $NAME sh -c "RACK_ENV=production ruby /code/lib/disclosure_crawler.rb --action crawl-list "
 
 echo "Stopping container $NAME"
 docker stop $NAME
