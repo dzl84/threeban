@@ -21,8 +21,9 @@ module ThreeBan
       start_time = Time.now
       httpclient = HTTPHelper.new(NEEQ_HOST)
       start_date = get_last_date || Date.strptime("2011-01-01", "%Y-%m-%d")
-      
-      while start_date <= Date.today
+      days_to_crawl = 15
+      while start_date <= Date.today and days_to_crawl >= 0
+        days_to_crawl -= 1
         start_date_str = start_date.to_s
         last_codes = get_disclosureCodes_on(start_date_str)
         page = 0
