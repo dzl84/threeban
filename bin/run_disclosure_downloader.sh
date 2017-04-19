@@ -5,7 +5,7 @@ NAME=disclosure_crawler
 RUNNING=`docker inspect --format="{{ .State.Running }}" $NAME`
 if [ $? -eq 1 ]; then
     echo "Container $NAME does not exist. Creating..."
-    docker create -it --link threebandb --name $NAME -v $ROOT/..:/code -v $ROOT/../logs:/logs -v $ROOT/../data/disclosures:/data ruby:2.3.0
+    docker create -it --link threebandb --name $NAME -v $ROOT/..:/code -v $ROOT/../logs:/logs -v $ROOT/../data/disclosures:/data ruby:2.3.4
 fi
 
 RUNNING=`docker inspect --format="{{ .State.Running }}" $NAME`
