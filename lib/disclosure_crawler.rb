@@ -21,7 +21,7 @@ module ThreeBan
       start_time = Time.now
       httpclient = HTTPHelper.new(NEEQ_HOST)
       start_date = get_last_date || Date.strptime("2011-01-01", "%Y-%m-%d")
-      days_to_crawl = 15
+      days_to_crawl = 5
       while start_date <= Date.today and days_to_crawl >= 0
         days_to_crawl -= 1
         start_date_str = start_date.to_s
@@ -83,11 +83,12 @@ module ThreeBan
       rec.map{|disc| disc[:disclosureCode]}
     end
 
-    def save_disclosure_content(disc)
+    def parse_disclosure_content(disc)
       begin
+        puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
         content = nil
         if disc[:filePath].end_with?(".pdf")
-          io     = open("#{NEEQ_HOST}#{disc[:filePath]}")
+          io     = open(disc[:filePath])
           reader = PDF::Reader.new(io)
           content = ""
           reader.pages.each { |page|
@@ -100,25 +101,20 @@ module ThreeBan
               end
             }
           }
-        elsif disc[:filePath].end_with?(".txt")
-          resp = httpclient.get(disc[:filePath])
-          if resp.code == '200'
-          content = resp.body
-          else
-            puts "Failed to get content for disclosure #{disc[:filePath]}, code: #{resp.code}"
-          return
+          txt_path = disc[:filePath].gsub("\.pdf", ".txt")
+          open(txt_path, "w") do |file|
+            file << content
           end
+          io.close
+          
+          disc.update_attributes!(:filePath => txt_path, :isParsed => true) 
         else
           puts "Unsupported suffix #{disc[:filePath]}"
-        return
+          return
         end
-
-        puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
-        ::Disclosure.update({:disclosureCode => disc[:disclosureCode]}, {:content => content, :hasContent => true})
       rescue Exception => e
-        puts "Failed to get content for disclosure #{disc[:filePath]}, #{e.class.name}"
+        puts "Failed to parse content for disclosure #{disc[:filePath]}, #{e.class.name}"
         puts e.backtrace
-        Disclosure.update({:disclosureCode => disc[:disclosureCode]}, {:content => "error", :hasContent => true})
       end
     end
 
@@ -169,6 +165,20 @@ module ThreeBan
         puts e.backtrace 
       end
       return nil
+    end
+  
+    def parse_disclosures
+      disclosures = Disclosure.where(:isParsed => false).asc(:publishTime).limit(500)
+      pool = Concurrent::FixedThreadPool.new(count)
+      disclosures.each {|disc|
+        pool.post {
+          puts "Downloading #{disc[:disclosureCode]} #{disc[:publishTime]} #{disc[:disclosureTitle]}"
+          parse_disclosure_content(disc)
+          
+        }
+      }
+      pool.shutdown
+      pool.wait_for_termination
     end
   end
 end

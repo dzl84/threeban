@@ -13,7 +13,8 @@ class Disclosure
   field :publishTime, :type => Time
   field :isDownloaded, :type => Boolean, :default => false
   field :filePath, :type => String, :default => nil
-  field :isContentParse, :type => Boolean, :default => false
+  field :isParsed, :type => Boolean, :default => false
+  field :isIndexed, :type => Boolean, :default => false
   field :txtPath, :type => String, :default => nil
   
   index({disclosureCode: 1}, {unique: true, background: true, drop_dups: true})
