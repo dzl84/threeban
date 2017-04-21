@@ -170,7 +170,7 @@ module ThreeBan
   
     # Parse disclosures from PDF to txt
     def parse_disclosures
-      disclosures = Disclosure.where(:isParsed => false).asc(:publishTime).limit(1)
+      disclosures = Disclosure.where(:isParsed => false).asc(:publishTime).limit(100)
       pool = Concurrent::FixedThreadPool.new(5)
       disclosures.each {|disc|
         pool.post {
