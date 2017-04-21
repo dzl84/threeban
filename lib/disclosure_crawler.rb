@@ -85,9 +85,10 @@ module ThreeBan
 
     def parse_disclosure_content(disc)
       begin
-        puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishTime]}"
+        puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishDate]}"
         content = nil
-        if disc[:filePath].end_with?(".pdf")
+        pdf_file = disc[:filePath]
+        if pdf_file.end_with?(".pdf")
           io     = open(disc[:filePath])
           reader = PDF::Reader.new(io)
           content = ""
@@ -106,8 +107,8 @@ module ThreeBan
             file << content
           end
           io.close
-          
           disc.update_attributes!(:filePath => txt_path, :isParsed => true) 
+          File.delete(pdf_file)
         else
           puts "Unsupported suffix #{disc[:filePath]}"
           return
@@ -167,12 +168,13 @@ module ThreeBan
       return nil
     end
   
+    # Parse disclosures from PDF to txt
     def parse_disclosures
-      disclosures = Disclosure.where(:isParsed => false).asc(:publishTime).limit(500)
-      pool = Concurrent::FixedThreadPool.new(count)
+      disclosures = Disclosure.where(:isParsed => false).asc(:publishTime).limit(1)
+      pool = Concurrent::FixedThreadPool.new(5)
       disclosures.each {|disc|
         pool.post {
-          puts "Downloading #{disc[:disclosureCode]} #{disc[:publishTime]} #{disc[:disclosureTitle]}"
+          puts "Parsing #{disc[:disclosureCode]} #{disc[:publishTime]} #{disc[:disclosureTitle]}"
           parse_disclosure_content(disc)
           
         }
@@ -202,6 +204,7 @@ if __FILE__ == $0
   when "download"
     crawler.crawl_disclosure_content
   when "parse-content"
+    crawler.parse_disclosures
   end
   
 
