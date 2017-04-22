@@ -58,7 +58,7 @@ module ThreeBan
     end
 
     def crawl_disclosure_content
-      disclosures = Disclosure.where(:filePath => nil).asc(:publishTime).limit(500)
+      disclosures = Disclosure.where(:filePath => nil).asc(:publishDate).limit(500)
       httpclient = HTTPHelper.new(NEEQ_HOST)
       count = 5
       pool = Concurrent::FixedThreadPool.new(count)
@@ -85,10 +85,10 @@ module ThreeBan
 
     def parse_disclosure_content(disc)
       begin
-        puts "Saving content for disclosureCode #{disc[:disclosureCode]} on #{disc[:publishDate]}"
         content = nil
         pdf_file = disc[:filePath]
         if pdf_file.end_with?(".pdf")
+	  puts "Parsing content for #{pdf_file}"
           io     = open(disc[:filePath])
           reader = PDF::Reader.new(io)
           content = ""
@@ -102,17 +102,24 @@ module ThreeBan
               end
             }
           }
+
           txt_path = disc[:filePath].gsub("\.pdf", ".txt")
+          puts "Saving content to #{txt_path}"
           open(txt_path, "w") do |file|
             file << content
           end
           io.close
-          disc.update_attributes!(:filePath => txt_path, :isParsed => true) 
+          disc.update_attributes!(:filePath => txt_path, :isContentParse => true)
+          
+ 	  puts "Deleting old pdf file #{pdf_file}" 
           File.delete(pdf_file)
         else
           puts "Unsupported suffix #{disc[:filePath]}"
           return
         end
+      rescue PDF::Reader::MalformedPDFError => e
+        puts "PDF contains unsupported elements, skip"
+        disc.update_attributes!(:skip => true)
       rescue Exception => e
         puts "Failed to parse content for disclosure #{disc[:filePath]}, #{e.class.name}"
         puts e.backtrace
@@ -170,11 +177,11 @@ module ThreeBan
   
     # Parse disclosures from PDF to txt
     def parse_disclosures
-      disclosures = Disclosure.where(:isParsed => false).asc(:publishTime).limit(100)
+      disclosures = Disclosure.where(:isDownloaded => true, :isContentParse => false, :skip => nil).desc(:publishDate).limit(100)
       pool = Concurrent::FixedThreadPool.new(5)
       disclosures.each {|disc|
         pool.post {
-          puts "Parsing #{disc[:disclosureCode]} #{disc[:publishTime]} #{disc[:disclosureTitle]}"
+          puts "Parsing #{disc[:disclosureCode]}: #{disc[:code]} #{disc[:publishDate]} #{disc[:disclosureTitle]}"
           parse_disclosure_content(disc)
           
         }
