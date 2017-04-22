@@ -88,7 +88,7 @@ module ThreeBan
         content = nil
         pdf_file = disc[:filePath]
         if pdf_file.end_with?(".pdf")
-	  puts "Parsing content for #{pdf_file}"
+	        puts "Parsing content for #{pdf_file}"
           io     = open(disc[:filePath])
           reader = PDF::Reader.new(io)
           content = ""
@@ -110,9 +110,10 @@ module ThreeBan
           end
           io.close
           disc.update_attributes!(:filePath => txt_path, :isContentParse => true)
-          
- 	  puts "Deleting old pdf file #{pdf_file}" 
-          File.delete(pdf_file)
+          if disc[:disclosureType] != "定期报告"
+ 	          puts "Deleting old pdf file #{pdf_file}" 
+            File.delete(pdf_file)
+          end
         else
           puts "Unsupported suffix #{disc[:filePath]}"
           return
