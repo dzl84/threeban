@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ROOT=`dirname $(readlink -f "$0")`
-NAME=disclosure_crawler
+NAME=disclosure_downloader
 RUNNING=`docker inspect --format="{{ .State.Running }}" $NAME`
 if [ $? -eq 1 ]; then
     echo "Container $NAME does not exist. Creating..."
