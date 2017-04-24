@@ -64,9 +64,16 @@ module ThreeBan
       pool = Concurrent::FixedThreadPool.new(count)
       disclosures.each {|disc|
         pool.post {
-          puts "Downloading #{disc[:disclosureCode]} #{disc[:publishTime]} #{disc[:disclosureTitle]}"
-          path = download_disclosure(disc)
-          disc.update_attributes!(:filePath => path, :isDownloaded => true) unless path.nil?
+          begin
+            puts "Downloading #{disc[:disclosureCode]}: #{disc[:code]} #{disc[:publishDate]} #{disc[:disclosureTitle]}"
+            path = download_disclosure(disc)
+            
+            puts "Parsing #{disc[:disclosureCode]}: #{disc[:code]} #{disc[:publishDate]} #{disc[:disclosureTitle]}"
+            parse_disclosure_content(disc)
+          rescue Exception => e
+            puts "Failed to download #{disc[:disclosureCode]}, #{e.class.name}"
+            puts e.backtrace
+          end
         }
       }
       pool.shutdown
@@ -87,7 +94,7 @@ module ThreeBan
       begin
         content = nil
         pdf_file = disc[:filePath]
-        if pdf_file.end_with?(".pdf")
+        if pdf_file.end_with?(".pdf") or pdf_file.end_with?(".PDF")
 	        puts "Parsing content for #{pdf_file}"
           io     = open(disc[:filePath])
           reader = PDF::Reader.new(io)
@@ -164,16 +171,12 @@ module ThreeBan
       
       folder_path = DATA_ROOT + "/" + code.split("").join("/")
       file_path = folder_path + "/" + filename
-      begin
-        FileUtils.mkdir_p(folder_path)
-        open(file_path, "w") do |file|
-          file << open(url).read
-        end
-        return file_path
-      rescue Exception => e
-        puts e.backtrace 
+
+      FileUtils.mkdir_p(folder_path)
+      open(file_path, "w") do |file|
+        file << open(url).read
       end
-      return nil
+      disc.update_attributes!(:filePath => file_path, :isDownloaded => true)
     end
   
     # Parse disclosures from PDF to txt
