@@ -62,6 +62,3 @@ DEPENDENCIES
   pdf-reader (~> 2.0.0)
   trollop (~> 2.1.2)
   tzinfo (~> 1.2.2)
-
-BUNDLED WITH
-   1.14.6

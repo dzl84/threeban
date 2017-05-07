@@ -42,8 +42,8 @@ production:
         write: 
           w: 1
         read:
-          mode: :secondary_preferred
+          mode: :primary
         connect: :direct
-        max_pool_size: 3
+        max_pool_size: 1
         wait_queue_timeout: 1
         connect_timeout: 10 
